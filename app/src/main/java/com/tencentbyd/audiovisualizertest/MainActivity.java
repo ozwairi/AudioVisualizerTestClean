@@ -11,16 +11,15 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
+import java.util.Arrays;
 
 public class MainActivity extends Activity {
 
     private static final String TAG = "AudioVisualizerTest";
+    private static final String METHODS_TAG = "AudioMethods";
+
     private TextView resultView;
 
     @Override
@@ -60,10 +59,10 @@ public class MainActivity extends Activity {
         youtube.setOnClickListener(v -> openYouTube());
         root.addView(youtube, matchWrap());
 
-Button list = new Button(this);
-list.setText("LIST AUDIO METHODS");
-list.setOnClickListener(v -> listAudioMethods());
-root.addView(list, matchWrap());
+        Button list = new Button(this);
+        list.setText("LIST AUDIO METHODS");
+        list.setOnClickListener(v -> listAudioMethods());
+        root.addView(list, matchWrap());
 
         setContentView(root);
     }
@@ -85,25 +84,36 @@ root.addView(list, matchWrap());
             Method method = AudioManager.class.getMethod(methodName);
             Object response = method.invoke(manager);
 
-            String message = "SUCCESS\n" + methodName + " called\nResult: " + response;
+            String message =
+                    "SUCCESS\n"
+                            + methodName
+                            + " called\nResult: "
+                            + response;
+
             resultView.setText(message);
             Log.i(TAG, message);
 
         } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause() != null ? error.getCause() : error;
-            String message = "INVOCATION FAILED\n"
-                    + cause.getClass().getName()
-                    + "\n"
-                    + String.valueOf(cause.getMessage());
+            Throwable cause =
+                    error.getCause() != null
+                            ? error.getCause()
+                            : error;
+
+            String message =
+                    "INVOCATION FAILED\n"
+                            + cause.getClass().getName()
+                            + "\n"
+                            + String.valueOf(cause.getMessage());
 
             resultView.setText(message);
             Log.e(TAG, message, cause);
 
         } catch (Throwable error) {
-            String message = "FAILED\n"
-                    + error.getClass().getName()
-                    + "\n"
-                    + String.valueOf(error.getMessage());
+            String message =
+                    "FAILED\n"
+                            + error.getClass().getName()
+                            + "\n"
+                            + String.valueOf(error.getMessage());
 
             resultView.setText(message);
             Log.e(TAG, message, error);
@@ -117,7 +127,10 @@ root.addView(list, matchWrap());
         };
 
         for (String packageName : packages) {
-            Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
+            Intent intent =
+                    getPackageManager()
+                            .getLaunchIntentForPackage(packageName);
+
             if (intent != null) {
                 startActivity(intent);
                 return;
@@ -125,37 +138,51 @@ root.addView(list, matchWrap());
         }
 
         resultView.setText("YouTube was not found.");
-    }private void listAudioMethods() {
-
-    StringBuilder out = new StringBuilder();
-
-    Method[] methods = AudioManager.class.getDeclaredMethods();
-
-    Arrays.sort(methods, (a, b) -> a.getName().compareTo(b.getName()));
-
-    for (Method m : methods) {
-
-        out.append(m.getReturnType().getSimpleName())
-                .append(" ")
-                .append(m.getName())
-                .append("(");
-
-        Class<?>[] p = m.getParameterTypes();
-
-        for (int i = 0; i < p.length; i++) {
-
-            out.append(p[i].getSimpleName());
-
-            if (i != p.length - 1)
-                out.append(", ");
-
-        }
-
-        out.append(")\n");
-
-        Log.i("AudioMethods", out.substring(out.lastIndexOf("\n") + 1));
     }
 
-    resultView.setText(out.toString());
-}
+    private void listAudioMethods() {
+        StringBuilder output = new StringBuilder();
+
+        Method[] methods =
+                AudioManager.class.getDeclaredMethods();
+
+        Arrays.sort(
+                methods,
+                (first, second) ->
+                        first.getName().compareTo(second.getName())
+        );
+
+        for (Method method : methods) {
+            StringBuilder line = new StringBuilder();
+
+            line.append(method.getReturnType().getSimpleName())
+                    .append(" ")
+                    .append(method.getName())
+                    .append("(");
+
+            Class<?>[] parameters = method.getParameterTypes();
+
+            for (int index = 0; index < parameters.length; index++) {
+                line.append(parameters[index].getSimpleName());
+
+                if (index < parameters.length - 1) {
+                    line.append(", ");
+                }
+            }
+
+            line.append(")");
+
+            output.append(line).append("\n");
+            Log.i(METHODS_TAG, line.toString());
+        }
+
+        resultView.setText(
+                "Found "
+                        + methods.length
+                        + " AudioManager methods.\n"
+                        + "Full list was written to Logcat."
+        );
+
+        Log.i(METHODS_TAG, "TOTAL_METHODS=" + methods.length);
+    }
 }
