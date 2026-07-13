@@ -11,8 +11,12 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
 
 public class MainActivity extends Activity {
 
@@ -55,6 +59,11 @@ public class MainActivity extends Activity {
         youtube.setText("OPEN YOUTUBE PREMIUM");
         youtube.setOnClickListener(v -> openYouTube());
         root.addView(youtube, matchWrap());
+
+Button list = new Button(this);
+list.setText("LIST AUDIO METHODS");
+list.setOnClickListener(v -> listAudioMethods());
+root.addView(list, matchWrap());
 
         setContentView(root);
     }
@@ -116,5 +125,37 @@ public class MainActivity extends Activity {
         }
 
         resultView.setText("YouTube was not found.");
+    }private void listAudioMethods() {
+
+    StringBuilder out = new StringBuilder();
+
+    Method[] methods = AudioManager.class.getDeclaredMethods();
+
+    Arrays.sort(methods, (a, b) -> a.getName().compareTo(b.getName()));
+
+    for (Method m : methods) {
+
+        out.append(m.getReturnType().getSimpleName())
+                .append(" ")
+                .append(m.getName())
+                .append("(");
+
+        Class<?>[] p = m.getParameterTypes();
+
+        for (int i = 0; i < p.length; i++) {
+
+            out.append(p[i].getSimpleName());
+
+            if (i != p.length - 1)
+                out.append(", ");
+
+        }
+
+        out.append(")\n");
+
+        Log.i("AudioMethods", out.substring(out.lastIndexOf("\n") + 1));
     }
+
+    resultView.setText(out.toString());
+}
 }
