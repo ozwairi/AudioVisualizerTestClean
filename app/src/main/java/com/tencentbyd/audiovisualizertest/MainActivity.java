@@ -46,7 +46,12 @@ public class MainActivity extends Activity {
 
         Button start = new Button(this);
         start.setText("START AUDIO OUTPUT");
-        start.setOnClickListener(v -> invokeAudioMethod("startAudioOutput"));
+start.setOnClickListener(v ->
+        invokeAudioMethodWithPackage(
+                "startAudioOutput",
+                "com.android.youtube.premium"
+        )
+);
         root.addView(start, matchWrap());
 
         Button stop = new Button(this);
@@ -185,4 +190,59 @@ public class MainActivity extends Activity {
 
         Log.i(METHODS_TAG, "TOTAL_METHODS=" + methods.length);
     }
+private void invokeAudioMethodWithPackage(
+        String methodName,
+        String packageName
+) {
+    try {
+        AudioManager manager =
+                (AudioManager) getSystemService(AUDIO_SERVICE);
+
+        Method method =
+                AudioManager.class.getMethod(
+                        methodName,
+                        String.class
+                );
+
+        Object response =
+                method.invoke(manager, packageName);
+
+        String message =
+                "SUCCESS\n"
+                        + methodName
+                        + "(\""
+                        + packageName
+                        + "\") called\nResult: "
+                        + response;
+
+        resultView.setText(message);
+        Log.i(TAG, message);
+
+    } catch (InvocationTargetException error) {
+        Throwable cause =
+                error.getCause() != null
+                        ? error.getCause()
+                        : error;
+
+        String message =
+                "INVOCATION FAILED\n"
+                        + cause.getClass().getName()
+                        + "\n"
+                        + String.valueOf(cause.getMessage());
+
+        resultView.setText(message);
+        Log.e(TAG, message, cause);
+
+    } catch (Throwable error) {
+        String message =
+                "FAILED\n"
+                        + error.getClass().getName()
+                        + "\n"
+                        + String.valueOf(error.getMessage());
+
+        resultView.setText(message);
+        Log.e(TAG, message, error);
+    }
 }
+}
+
